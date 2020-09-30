@@ -1,5 +1,4 @@
 import numpy as np
-from numpy.lib.function_base import select
 import pandas as pd
 import os
 import sys
@@ -50,12 +49,15 @@ wbaozhangdian=glob.glob(r'原始数据\报账点缴费台帐-*.csv')
 wbaozhangdian.sort(reverse=True)
 wbaozhangdian=wbaozhangdian[0]
 wbaozhangdianname = os.path.split(wbaozhangdian)[1]
-
+Ht=pd.read_excel('已排除的合同或报账点.xlsx',sheet_name='已排除的合同')
+Zd=pd.read_excel('已排除的合同或报账点.xlsx',sheet_name='已排除的报帐点')
 try:
     print('正在处理：'+wbaozhangdianname)
     ex=pd.read_csv(wbaozhangdian)
     ex.drop(ex[ex['供电方式']=='直供电'].index,inplace=True)
     ex.drop(ex[ex['供应商名称']=='中国铁塔股份有限公司宜昌市分公司'].index,inplace=True)
+    ex.drop(ex[ex['合同编号'].apply(lambda x:x in list(Ht['合同编号']))].index,inplace=True)
+    ex.drop(ex[ex['报帐点编码'].apply(lambda x:x in list(Zd['报帐点编码']))].index,inplace=True)
     ex['支付周期']=ex['支付周期'].apply(支付周期映射)
     sheet1=ex.groupby(['报帐点编码','合同编号'])   
     sheet1=sheet1[['缴费期终','合同结束时间']].max()
@@ -86,3 +88,4 @@ else:
     logFile.writelines(strF)
     logFile.flush()
     logFile.close()
+input("按回车键退出")
